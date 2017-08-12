@@ -45,19 +45,35 @@ var portfolio = {
 	fetchHistory: function() {
 		var self = this;
 		axios.get('http://www.coincap.io/history/1day/ETH').then(function(timeSlots) {
-			self.collectProximateSlots(timeSlots)
+			self.collectProximateSlots(timeSlots);
 		})
 	},
 	fetchTopTenCurrencies: function() {
 		var self = this;
 		axios.get('http://www.coincap.io/front').then(function(currencies) {
-			self.store(currencies)
+			self.store(currencies);
+		})
+	},
+	render: function() {
+		var container = document.getElementById('container');
+		var button = document.getElementById('submit');
+
+		portfolio.relevantCurrencies.forEach(function(currency, i) {
+			var textNode = document.createElement('div');
+			textNode.innerHTML = currency.longName;
+
+			var inputNode = document.createElement('input');
+			inputNode.id = currency.shortName;
+			inputNode.className = "currentValues";
+
+			container.insertBefore(textNode, button);
+			container.insertBefore(inputNode, button);
 		})
 	},
 	store: function(currencies) {
 		currencies.data.forEach(function(currency, i) {
 			if (i < 10) {
-				this.relevantCurrencies.push(new Currency(currency.long, currency.price, currency.short))
+				this.relevantCurrencies.push(new Currency(currency.long, currency.price, currency.short));
 			}
 		}, this)
 	}
