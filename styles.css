@@ -1,0 +1,36 @@
+body {
+	text-align: center;
+}
+
+div > div {
+	font-size: 20px;
+	margin-bottom: 10px;
+}
+
+input {
+	display: inline-block;
+	margin: 0px 0px 10px 10px;
+}
+
+#header {
+	visibility: hidden;
+}
+
+#loading {
+	font-size: 40px;
+	margin-top: 40px;
+}
+
+#submit {
+	border: 1px solid black;
+	cursor: pointer;
+	margin: auto;
+	visibility: hidden;
+	width: 173px;
+}
+
+.text {
+	display: inline-block;
+	text-align: left;
+	width: 150px;
+}
