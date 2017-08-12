@@ -17,6 +17,9 @@ var portfolio = {
 
 		this.compareClosestSlots(closestTime, this.twentyFourHoursAgo)
 	},
+	collectValues: function() {
+		console.log('hi')
+	},
 	compareClosestSlots: function(slotsArray, twentyFourHoursAgo) {
 		var firstTimeDifference, secondTimeDifference, firstClosestTime, secondClosestTime, closestWithinFiveMinutes, firstIndex, secondIndex;
 
@@ -52,23 +55,38 @@ var portfolio = {
 		var self = this;
 		axios.get('http://www.coincap.io/front').then(function(currencies) {
 			self.store(currencies);
+		}).then(function() {
+			self.render();
 		})
 	},
 	render: function() {
 		var container = document.getElementById('container');
 		var button = document.getElementById('submit');
+		var loadingMessage = document.getElementById('loading');
+		var header = document.getElementById('header');
 
 		portfolio.relevantCurrencies.forEach(function(currency, i) {
+			var row = document.createElement('div');
+			row.className = "row";
+
 			var textNode = document.createElement('div');
 			textNode.innerHTML = currency.longName;
+			textNode.className = "text"
 
 			var inputNode = document.createElement('input');
 			inputNode.id = currency.shortName;
-			inputNode.className = "currentValues";
+			inputNode.className = "values";
 
-			container.insertBefore(textNode, button);
-			container.insertBefore(inputNode, button);
+			row.appendChild(textNode);
+			row.appendChild(inputNode);
+
+			container.insertBefore(row, button);
 		})
+
+		// magic
+		loadingMessage.style.display = "none";
+		header.style.visibility = "visible";
+		button.style.visibility = "visible";
 	},
 	store: function(currencies) {
 		currencies.data.forEach(function(currency, i) {
