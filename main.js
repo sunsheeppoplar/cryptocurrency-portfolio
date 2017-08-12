@@ -7,18 +7,26 @@ var portfolio = {
 	collectProximateSlots: function(timeSlots) {
 		var closestTime = [];
 		var fiveMinutesInMilliseconds = 300000;
-
-		timeSlots.data.price.forEach(function(slot, i) {
-			var dateInMilliseconds = slot[0];
-			if (dateInMilliseconds - this.twentyFourHoursAgo < fiveMinutesInMilliseconds) {
-				closestTime.push(slot)
-			}
-		}, this);
-
-		this.compareClosestSlots(closestTime, this.twentyFourHoursAgo)
+		if (timeSlots.data !== null) {
+			timeSlots.data.price.forEach(function(slot, i) {
+				var dateInMilliseconds = slot[0];
+				if (dateInMilliseconds - this.twentyFourHoursAgo < fiveMinutesInMilliseconds) {
+					closestTime.push(slot)
+				}
+			}, this);
+			return this.compareClosestSlots(closestTime, this.twentyFourHoursAgo)
+		}
 	},
 	collectValues: function() {
-		console.log('hi')
+		var rows = document.querySelectorAll('.balance');
+		for (var i = 0; i < rows.length; i++) {
+			this.relevantCurrencies.forEach(function(e, i) {
+				if (e.shortName === rows[i].id) {
+					e.balance = parseInt(rows[i].value);
+				}
+			})
+		}
+		this.fetchHistory();
 	},
 	compareClosestSlots: function(slotsArray, twentyFourHoursAgo) {
 		var firstTimeDifference, secondTimeDifference, firstClosestTime, secondClosestTime, closestWithinFiveMinutes, firstIndex, secondIndex;
@@ -40,15 +48,19 @@ var portfolio = {
 			closestWithinFiveMinutes = slotsArray[firstIndex]
 		}
 
-		console.log(closestWithinFiveMinutes)
+		return closestWithinFiveMinutes;
 	},
 	findDifference: function(timeSlot, twentyFourHoursAgo) {
 		return Math.abs(twentyFourHoursAgo - timeSlot);
 	},
 	fetchHistory: function() {
 		var self = this;
-		axios.get('http://www.coincap.io/history/1day/ETH').then(function(timeSlots) {
-			self.collectProximateSlots(timeSlots);
+		this.relevantCurrencies.forEach(function(currency, i) {
+			if (currency.balance > 0) {
+				axios.get('http://www.coincap.io/history/1day/' + currency.shortName).then(function(timeSlots) {
+					currency.comparisonInfo = self.collectProximateSlots(timeSlots);
+				})
+			}
 		})
 	},
 	fetchTopTenCurrencies: function() {
@@ -75,7 +87,8 @@ var portfolio = {
 
 			var inputNode = document.createElement('input');
 			inputNode.id = currency.shortName;
-			inputNode.className = "values";
+			inputNode.className = "balance";
+			inputNode.value = "0";
 
 			row.appendChild(textNode);
 			row.appendChild(inputNode);
