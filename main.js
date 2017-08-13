@@ -1,21 +1,23 @@
 var portfolio = {
 	init: function() {
 		this.twentyFourHoursAgo = Date.now() - 86400000;
+		this.fiveMinutesInMilliseconds = 300000;
+		this.lastUpdated = new Date();
 		this.relevantCurrencies = [];
 		this.fetchTopTenCurrencies();
 	},
+	calculateReturnRate: function() {
+		debugger;
+	},
 	collectProximateSlots: function(timeSlots) {
 		var closestTime = [];
-		var fiveMinutesInMilliseconds = 300000;
-		if (timeSlots.data !== null) {
-			timeSlots.data.price.forEach(function(slot, i) {
-				var dateInMilliseconds = slot[0];
-				if (dateInMilliseconds - this.twentyFourHoursAgo < fiveMinutesInMilliseconds) {
-					closestTime.push(slot)
-				}
-			}, this);
-			return this.compareClosestSlots(closestTime, this.twentyFourHoursAgo)
-		}
+		timeSlots.forEach(function(slot, i) {
+			var dateInMilliseconds = slot[0];
+			if (dateInMilliseconds - this.twentyFourHoursAgo < this.fiveMinutesInMilliseconds) {
+				closestTime.push(slot)
+			}
+		}, this);
+		return this.compareClosestSlots(closestTime, this.twentyFourHoursAgo)
 	},
 	collectValues: function() {
 		var rows = document.querySelectorAll('.balance');
@@ -55,12 +57,26 @@ var portfolio = {
 	},
 	fetchHistory: function() {
 		var self = this;
-		this.relevantCurrencies.forEach(function(currency, i) {
-			if (currency.balance > 0) {
-				axios.get('http://www.coincap.io/history/1day/' + currency.shortName).then(function(timeSlots) {
-					currency.comparisonInfo = self.collectProximateSlots(timeSlots);
-				})
-			}
+		var promises = this.relevantCurrencies.filter(function(currency, i) {
+			return currency.balance > 0
+				// .then(function(timeSlots) {
+				// 	currency.comparisonInfo = self.collectProximateSlots(timeSlots);
+					 // currenciesResolved++;
+				// })
+
+		}).map(function(currency) {
+			return axios.get('http://www.coincap.io/history/1day/' + currency.shortName)
+		})
+		axios.all(promises).then(function(promise) {
+			self.relevantCurrencies.forEach(function(currency, i) {
+				var currencyWithReturnedData = promise[i];
+				// var currencyRequiringUpdate = promise[i].config.url.substr(-3);
+				if (currencyWithReturnedData) {
+					if (promise[i].config.url.substr(-3) === currency.shortName && currencyWithReturnedData.data) {
+						currency.comparisonInfo = self.collectProximateSlots(currencyWithReturnedData.data.price);
+					}
+				}
+			})
 		})
 	},
 	fetchTopTenCurrencies: function() {
@@ -104,7 +120,7 @@ var portfolio = {
 	store: function(currencies) {
 		currencies.data.forEach(function(currency, i) {
 			if (i < 10) {
-				this.relevantCurrencies.push(new Currency(currency.long, currency.price, currency.short));
+				this.relevantCurrencies.push(new Currency(currency.long, currency.price, currency.short, this.lastUpdated));
 			}
 		}, this)
 	}
