@@ -93,7 +93,7 @@ var portfolio = {
 				// })
 
 		}).map(function(currency) {
-			return axios.get('http://www.coincap.io/history/1day/' + currency.shortName)
+			return axios.get('https://www.coincap.io/history/1day/' + currency.shortName)
 		})
 		axios.all(promises).then(function(promise) {
 			self.relevantCurrencies.forEach(function(currency, i) {
@@ -111,7 +111,7 @@ var portfolio = {
 	},
 	fetchTopTenCurrencies: function() {
 		var self = this;
-		axios.get('http://www.coincap.io/front').then(function(currencies) {
+		axios.get('https://www.coincap.io/front').then(function(currencies) {
 			self.store(currencies);
 		}).then(function() {
 			self.render();
