@@ -7,7 +7,35 @@ var portfolio = {
 		this.fetchTopTenCurrencies();
 	},
 	calculateReturnRate: function() {
-		debugger;
+		var totals = {
+			yesterday: 0,
+			today: 0
+		};
+		var yesterdaysDecimalPrecision = 0;
+		var todaysDecimalPrecision = 0;
+		this.relevantCurrencies.forEach(function(currency, i) {
+			// takes care of NaN for empty fields (balance) and makes sure that we had some historical data fetched
+			if (currency.balance && currency.comparisonInfo) {
+				var todaysDecimalLength = new Price(currency.price).decimalLength();
+				var yesterdaysDecimalLength = new Price(currency.comparisonInfo[1]).decimalLength();
+
+				if (todaysDecimalLength > todaysDecimalPrecision) {
+					todaysDecimalPrecision = todaysDecimalLength;
+				}
+
+				if (yesterdaysDecimalLength > yesterdaysDecimalPrecision) {
+					yesterdaysDecimalPrecision = yesterdaysDecimalLength;
+				}
+
+				totals.yesterday += currency.comparisonInfo[1];
+				totals.today += currency.price;
+			}
+		})
+		var todaysValue = totals.today.toFixed(todaysDecimalPrecision);
+		var yesterdaysValue = totals.yesterday.toFixed(yesterdaysDecimalPrecision);
+		var portfolioReturn = (todaysValue - yesterdaysValue) / yesterdaysValue;
+		var portfolioReturnPercentage = portfolioReturn * 100;
+		this.showReturnRate(portfolioReturnPercentage);
 	},
 	collectProximateSlots: function(timeSlots) {
 		var closestTime = [];
@@ -77,6 +105,8 @@ var portfolio = {
 					}
 				}
 			})
+		}).then(function() {
+			self.calculateReturnRate();
 		})
 	},
 	fetchTopTenCurrencies: function() {
@@ -95,16 +125,16 @@ var portfolio = {
 
 		portfolio.relevantCurrencies.forEach(function(currency, i) {
 			var row = document.createElement('div');
-			row.className = "row";
+			row.className = 'row';
 
 			var textNode = document.createElement('div');
 			textNode.innerHTML = currency.longName;
-			textNode.className = "text"
+			textNode.className = 'text'
 
 			var inputNode = document.createElement('input');
 			inputNode.id = currency.shortName;
-			inputNode.className = "balance";
-			inputNode.value = "0";
+			inputNode.className = 'balance';
+			inputNode.value = '0';
 
 			row.appendChild(textNode);
 			row.appendChild(inputNode);
@@ -113,9 +143,23 @@ var portfolio = {
 		})
 
 		// magic
-		loadingMessage.style.display = "none";
-		header.style.visibility = "visible";
-		button.style.visibility = "visible";
+		loadingMessage.style.display = 'none';
+		header.style.visibility = 'visible';
+		button.style.visibility = 'visible';
+	},
+	showReturnRate: function(amount) {
+		var returnSign;
+		if (amount > 0) {
+			returnSign = 'gain';
+		} else {
+			returnSign = 'loss';
+		}
+		var div = document.getElementById('return')
+		var span = document.createElement('span')
+		span.innerHTML = returnSign;
+		span.id = returnSign;
+		div.innerHTML = amount + '% ';
+		div.appendChild(span);
 	},
 	store: function(currencies) {
 		currencies.data.forEach(function(currency, i) {

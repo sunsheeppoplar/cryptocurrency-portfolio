@@ -12,13 +12,25 @@ input {
 	margin: 0px 0px 10px 10px;
 }
 
+#gain {
+	color: green;
+}
+
 #header {
 	visibility: hidden;
+}
+
+#loss {
+	color: red;
 }
 
 #loading {
 	font-size: 40px;
 	margin-top: 40px;
+}
+
+#return {
+	margin-top: 10px;
 }
 
 #submit {
@@ -28,6 +40,8 @@ input {
 	visibility: hidden;
 	width: 173px;
 }
+
+
 
 .text {
 	display: inline-block;
